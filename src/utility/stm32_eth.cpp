@@ -46,6 +46,7 @@
 #include "lwip/dhcp.h"
 #include "lwip/prot/dhcp.h"
 #include "lwip/dns.h"
+#include <STM32FreeRTOS.h>
 
 /* Check ethernet link status every seconds */
 #define TIME_CHECK_ETH_LINK_STATE 500U
@@ -184,9 +185,18 @@ static void TIM_scheduler_Config(void)
 }
 #endif
 
+static void ethernet_scheduler_task(void *p) {
+  UNUSED(p);
+  while (1) {
+    vTaskDelay(1);
+    scheduler_callback();
+  }
+}
+
 void stm32_eth_init(const uint8_t *mac, const uint8_t *ip, const uint8_t *gw, const uint8_t *netmask)
 {
   static uint8_t initDone = 0;
+  portBASE_TYPE s1;
 
   if (!initDone) {
     /* Initialize the LwIP stack */
@@ -230,7 +240,20 @@ void stm32_eth_init(const uint8_t *mac, const uint8_t *ip, const uint8_t *gw, co
     Netif_Config();
 
     // stm32_eth_scheduler() will be called every 1ms.
-    TIM_scheduler_Config();
+    // TIM_scheduler_Config();
+    // Start scheduler task
+      // create /chatter publisher task
+  s1 = xTaskCreate(ethernet_scheduler_task,
+      (const portCHAR *)"ethernet_scheduler",
+      configMINIMAL_STACK_SIZE+200,
+      NULL,
+      tskIDLE_PRIORITY + 1,
+      NULL);
+
+  // check for creation errors
+  if (s1 != pdPASS) {
+    while(1);
+  }
 
     initDone = 1;
   }

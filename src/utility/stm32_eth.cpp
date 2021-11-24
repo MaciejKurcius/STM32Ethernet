@@ -51,6 +51,7 @@
 
 #ifdef ETHERNET_USE_FREERTOS
 #include <STM32FreeRTOS.h>
+#include "stm32f4xx_hal.h"
 #endif
 
 /* Check ethernet link status every seconds */
@@ -194,6 +195,70 @@ static void TIM_scheduler_Config(void) {
 #endif
 
 #ifdef ETHERNET_USE_FREERTOS
+
+// redefinitions of time "_weak" base functions for HAL (from stm32f4xx_hal.c)
+
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+  if (taskSCHEDULER_NOT_STARTED == xTaskGetSchedulerState()) {
+    /* Configure the SysTick to have interrupt in 1ms time basis*/
+    if (HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq)) > 0U) {
+      return HAL_ERROR;
+    }
+
+    /* Configure the SysTick IRQ priority */
+    if (TickPriority < (1UL << __NVIC_PRIO_BITS)) {
+      HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
+      uwTickPrio = TickPriority;
+    } else {
+      return HAL_ERROR;
+    }
+  }
+
+  /* Return function status */
+  return HAL_OK;
+}
+
+void HAL_IncTick(void) {
+  if (taskSCHEDULER_NOT_STARTED == xTaskGetSchedulerState()) {
+    uwTick += uwTickFreq;
+  }
+}
+
+uint32_t HAL_GetTick(void) {
+  if (taskSCHEDULER_NOT_STARTED == xTaskGetSchedulerState()) {
+    return uwTick;
+  } else {
+    return xTaskGetTickCountFromISR();
+  }
+}
+
+void HAL_Delay(uint32_t Delay) {
+  uint32_t tickstart = HAL_GetTick();
+  uint32_t wait = Delay;
+
+  /* Add a freq to guarantee minimum wait */
+  if (wait < HAL_MAX_DELAY) {
+    wait += (uint32_t)(uwTickFreq);
+  }
+
+  while ((HAL_GetTick() - tickstart) < wait) {
+  }
+}
+
+void HAL_SuspendTick(void) {
+  /* Disable SysTick Interrupt */
+  if (taskSCHEDULER_NOT_STARTED == xTaskGetSchedulerState()) {
+    SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+  }
+}
+
+void HAL_ResumeTick(void) {
+  /* Enable SysTick Interrupt */
+  if (taskSCHEDULER_NOT_STARTED == xTaskGetSchedulerState()) {
+    SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
+  }
+}
+
 static void ethernet_scheduler_task(void *p) {
   UNUSED(p);
   while (1) {

@@ -247,7 +247,7 @@ void stm32_eth_init(const uint8_t *mac, const uint8_t *ip, const uint8_t *gw, co
       (const portCHAR *)"ethernet_scheduler",
       configMINIMAL_STACK_SIZE+200,
       NULL,
-      tskIDLE_PRIORITY + 1,
+      tskIDLE_PRIORITY + 5,
       NULL);
 
   // check for creation errors

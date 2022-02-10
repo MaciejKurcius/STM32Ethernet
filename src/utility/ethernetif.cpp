@@ -116,30 +116,52 @@ uint32_t ETH_HashTableLow = 0x0;
 void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
-  const PinMap *map = PinMap_Ethernet;
-  PinName pin = pin_pinName(map);
   GPIO_TypeDef *port;
 
   UNUSED(heth);
 
   /* Ethernet pins configuration ************************************************/
 
-  if (map != NULL) {
-    while (pin != NC) {
-      /* Set port clock */
-      port = set_GPIO_Port_Clock(STM_PORT(pin));
+  #ifdef ETHERNET_RMII_MODE_CONFIGURATION
+    const PinMap *map = PinMap_Ethernet_RMII;
+    PinName pin = pin_pinName(map);
+    if (map != NULL) {
+      while (pin != NC) {
+        /* Set port clock */
+        port = set_GPIO_Port_Clock(STM_PORT(pin));
 
-      /* pin configuration */
-      GPIO_InitStructure.Pin       = STM_GPIO_PIN(pin);
-      GPIO_InitStructure.Mode      = STM_PIN_MODE(pinmap_function(pin, PinMap_Ethernet));
-      GPIO_InitStructure.Pull      = STM_PIN_PUPD(pinmap_function(pin, PinMap_Ethernet));
-      GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_HIGH;
-      GPIO_InitStructure.Alternate = STM_PIN_AFNUM(pinmap_function(pin, PinMap_Ethernet));
-      HAL_GPIO_Init(port, &GPIO_InitStructure);
+        /* pin configuration */
+        GPIO_InitStructure.Pin       = STM_GPIO_PIN(pin);
+        GPIO_InitStructure.Mode      = STM_PIN_MODE(pinmap_function(pin, PinMap_Ethernet_RMII));
+        GPIO_InitStructure.Pull      = STM_PIN_PUPD(pinmap_function(pin, PinMap_Ethernet_RMII));
+        GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_HIGH;
+        GPIO_InitStructure.Alternate = STM_PIN_AFNUM(pinmap_function(pin, PinMap_Ethernet_RMII));
+        HAL_GPIO_Init(port, &GPIO_InitStructure);
 
-      pin = pin_pinName(++map);
+        pin = pin_pinName(++map);
+      }
     }
-  }
+  #else
+    const PinMap *map = PinMap_Ethernet_MII;
+    PinName pin = pin_pinName(map);
+    if (map != NULL) {
+      while (pin != NC) {
+        /* Set port clock */
+        port = set_GPIO_Port_Clock(STM_PORT(pin));
+
+        /* pin configuration */
+        GPIO_InitStructure.Pin       = STM_GPIO_PIN(pin);
+        GPIO_InitStructure.Mode      = STM_PIN_MODE(pinmap_function(pin, PinMap_Ethernet_MII));
+        GPIO_InitStructure.Pull      = STM_PIN_PUPD(pinmap_function(pin, PinMap_Ethernet_MII));
+        GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_HIGH;
+        GPIO_InitStructure.Alternate = STM_PIN_AFNUM(pinmap_function(pin, PinMap_Ethernet_MII));
+        HAL_GPIO_Init(port, &GPIO_InitStructure);
+
+        pin = pin_pinName(++map);
+      }
+    }
+  #endif /* ETHERNET_RMII_MODE_CONFIGURATION */
+
 
 #ifdef ETH_INPUT_USE_IT
   /* Enable the Ethernet global Interrupt */

@@ -577,7 +577,7 @@ void ethernetif_update_config(struct netif *netif)
 {
   uint32_t regvalue = 0;
   uint32_t SMI_Phy_Addr, SMI_Reg_Addr, SMI_Reg_Ret_Val;
-  
+
   if (netif_is_link_up(netif)) {
     /* Restart the auto-negotiation */
     if (EthHandle.Init.AutoNegotiation != ETH_AUTONEGOTIATION_DISABLE) {
@@ -587,11 +587,11 @@ void ethernetif_update_config(struct netif *netif)
       LAN9303_To_SMI_Address_Conv(LAN9303_PHY_ADDRESS, PHY_BSR, LOW_WORD_MASK, &SMI_Phy_Addr, &SMI_Reg_Addr);
       EthHandle.Init.PhyAddress = SMI_Phy_Addr;
       HAL_ETH_ReadPHYRegister(&EthHandle, SMI_Reg_Addr, &SMI_Reg_Ret_Val);
-      *regvalue = (uint32_t)0x00 | SMI_Reg_Ret_Val;
+      regvalue = (uint32_t)0x00 | SMI_Reg_Ret_Val;
       LAN9303_To_SMI_Address_Conv(LAN9303_PHY_ADDRESS, PHY_BSR, HIGH_WORD_MASK, &SMI_Phy_Addr, &SMI_Reg_Addr);
       EthHandle.Init.PhyAddress = SMI_Phy_Addr;
       HAL_ETH_ReadPHYRegister(&EthHandle, SMI_Reg_Addr, &SMI_Reg_Ret_Val);
-      *regvalue |= SMI_Reg_Ret_Val << 16;
+      regvalue |= SMI_Reg_Ret_Val << 16;
       EthHandle.Init.PhyAddress = LAN9303_PHY_ADDRESS;
       if ((regvalue & PHY_BSR_AUTONEG_COMPLETE) != PHY_BSR_AUTONEG_COMPLETE) {
         goto error;

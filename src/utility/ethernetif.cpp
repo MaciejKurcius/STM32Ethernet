@@ -576,15 +576,14 @@ void ethernetif_set_link(struct netif *netif)
 void ethernetif_update_config(struct netif *netif)
 {
   uint32_t regvalue = 0;
-
+  uint32_t SMI_Phy_Addr, SMI_Reg_Addr, SMI_Reg_Ret_Val;
+  
   if (netif_is_link_up(netif)) {
     /* Restart the auto-negotiation */
     if (EthHandle.Init.AutoNegotiation != ETH_AUTONEGOTIATION_DISABLE) {
 
 #ifdef LAN9303
-      uint32_t SMI_Phy_Addr, SMI_Reg_Addr, SMI_Reg_Ret_Val;
-
-            /* Check Auto negotiation */
+      /* Check Auto negotiation */
       LAN9303_To_SMI_Address_Conv(LAN9303_PHY_ADDRESS, PHY_BSR, LOW_WORD_MASK, &SMI_Phy_Addr, &SMI_Reg_Addr);
       EthHandle.Init.PhyAddress = SMI_Phy_Addr;
       HAL_ETH_ReadPHYRegister(&EthHandle, SMI_Reg_Addr, &SMI_Reg_Ret_Val);
@@ -709,10 +708,10 @@ void LAN9303_To_SMI_Address_Conv(uint32_t LAN9303_Phy_Addr, uint32_t LAN9303_Reg
 	*SMI_Reg_Addr = PHY_REG_ADDR_INIT_VAL;
 	*SMI_Reg_Addr |= (LAN9303_Reg_Addr & PHY_REG_MASK) >> 1;
 	//Conv SMI Addr to select proper word
-	if(Word_Selector == 0){
+	if(Word_Order == 0){
 		*SMI_Reg_Addr |= PHY_REG_LO_WORD_MASK;
 	}
-	if(Word_Selector == 1){
+	if(Word_Order == 1){
 		*SMI_Reg_Addr |= PHY_REG_HI_WORD_MASK;
 	}
   }

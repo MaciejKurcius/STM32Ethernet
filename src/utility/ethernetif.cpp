@@ -608,10 +608,10 @@ void ethernetif_update_config(struct netif *netif)
       if ((regvalue & PHY_BASE_T2_FULL_DUPLEX) | (regvalue & PHY_BASE_T2_HALF_DUPLEX) 
           | (regvalue & PHY_BASE_X_FULL_DUPLEX) | (regvalue & PHY_BASE_X_HALF_DUPLEX)) {
         /* Set Ethernet speed to 10M following the auto-negotiation */
-        EthHandle.Init.Speed = ETH_SPEED_10M;
+        EthHandle.Init.Speed = ETH_SPEED_100M;
       } else {
         /* Set Ethernet speed to 100M following the auto-negotiation */
-        EthHandle.Init.Speed = ETH_SPEED_100M;
+        EthHandle.Init.Speed = ETH_SPEED_10M;
       }
     } else { /* AutoNegotiation Disable */
 error :
